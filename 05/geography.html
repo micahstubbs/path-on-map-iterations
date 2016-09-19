@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+/* CSS goes here. */
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js'></script>
+<script>
+/* JavaScript goes here. */
+const width = 960;
+const height = 1160;
+
+const projection = d3.geo.mercator()
+  .scale(100000)
+  .center([-122.2927387, 37.631258])
+  .translate([width / 2, height / 2]);
+
+const path = d3.geo.path()
+  .projection(projection);
+
+const svg = d3.select('body').append('svg')
+  .attr('width', width)
+  .attr('height', height);
+
+d3.json("ca.topojson", function(error, ca) {
+  if (error) return console.error(error);
+  console.log('ca', ca);
+
+  svg.append("path")
+    .datum(topojson.feature(ca, ca.objects.ca))
+    .attr("d", path);
+});
+
+</script>
