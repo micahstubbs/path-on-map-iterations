@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<style>
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js'></script>
+<script>
+
+const width = 1050;
+const height = 1500;
+
+var canvas = d3.select("body").append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+var context = canvas.node().getContext("2d");
+
+
+const projection = d3.geo.mercator()
+  .scale(100000)
+  .center([-122.2927387, 37.631258])
+  .translate([width / 2, height / 2]);
+
+var path = d3.geo.path()
+    .projection(projection);
+    //.context(context);
+
+var graticule = d3.geo.graticule();
+
+d3.json("alt-route-geography.json", function(error, routeTopology) {
+d3.json("ca.topojson", function(error, ca) {
+// d3.json("world-110m.json", function(error, world) {
+    console.log('routeTopology', routeTopology);
+
+    var countries = topojson.feature(ca, ca.objects.ca);
+    var track = topojson.feature(routeTopology, routeTopology.objects.route);
+
+    var pathEl = d3.select("body").append("svg").append("path").attr("d", path(track));
+    var length = pathEl.node().getTotalLength();
+    d3.select("svg").remove;
+
+    d3.transition()
+        .duration(12000)
+        .ease("linear")
+        .tween("zoom", function() {
+            return function(t) {
+              context.clearRect(0, 0, width, height);
+              context.strokeStyle = '#aaa';
+              context.fillStyle = '#ccc';
+
+              context.beginPath();
+              path.context(context)(graticule());
+
+              context.lineWidth = 0.2;
+              context.strokeStyle = 'rgba(30,30,30, 0.5)';
+              context.stroke();
+
+              context.beginPath();
+              path.context(context)(countries);
+              context.fill();
+
+              context.beginPath();
+              path.context(context)(countries);
+              context.stroke();
+
+              context.lineWidth = 5;
+              context.strokeStyle = 'rgba(120,60,60, 1)';
+              context.setLineDash([length]);
+              context.lineDashOffset = length*(1-t);
+
+              context.beginPath();
+              path.context(context)(track);
+              context.stroke();
+              context.setLineDash([]);
+            }
+        });
+});
+});
+
+
+d3.select(self.frameElement).style("height", height + "px");
+
+</script>
